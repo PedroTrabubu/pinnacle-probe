@@ -1,11 +1,15 @@
 name: probe
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
       - name: Probar la API de invitados de Pinnacle
         run: |
+          echo "Hora real de ejecucion (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
           for path in "leagues/2196/matchups" "leagues/2196/markets/straight"; do
             code=$(curl -s -o /tmp/out.json -w "%{http_code}" -A "$UA" -H "Accept: application/json" \
