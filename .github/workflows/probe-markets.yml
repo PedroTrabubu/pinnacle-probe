@@ -1,0 +1,21 @@
+name: probe-markets
+on: workflow_dispatch
+jobs:
+  loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Cuotas (markets/straight) cada 12 min, comparando capturas
+        run: |
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
+          B=https://guest.api.arcadia.pinnacle.com/0.1/leagues/2196
+          mkdir -p cap
+          for i in $(seq 1 6); do
+            c1=$(curl -s -o cap/m_$i.json -w "%{http_code}" -A "$UA" -H "Accept: application/json" "$B/matchups")
+            c2=$(curl -s -o cap/p_$i.json -w "%{http_code}" -A "$UA" -H "Accept: application/json" "$B/markets/straight")
+            echo "[$i] $(date -u +%H:%M:%S) UTC matchups=$c1 markets=$c2 bytes=$(wc -c < cap/p_$i.json) md5=$(md5sum < cap/p_$i.json | cut -c1-8) mercados=$(jq 'length' cap/p_$i.json) precios=$(jq '[.[].prices[]?]|length' cap/p_$i.json)"
+            if [ "$i" -gt 1 ]; then
+              echo "    mercados con cambios vs anterior: $(diff <(jq -S -c '.[]' cap/p_$((i-1)).json) <(jq -S -c '.[]' cap/p_$i.json) | grep -c '^>')"
+            fi
+            if [ "$i" -lt 6 ]; then sleep 720; fi
+          done
