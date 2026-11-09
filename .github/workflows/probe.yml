@@ -1,0 +1,16 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probar la API de invitados de Pinnacle
+        run: |
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
+          for path in "leagues/2196/matchups" "leagues/2196/markets/straight"; do
+            code=$(curl -s -o /tmp/out.json -w "%{http_code}" -A "$UA" -H "Accept: application/json" \
+              "https://guest.api.arcadia.pinnacle.com/0.1/$path")
+            echo "== $path -> HTTP $code, $(wc -c < /tmp/out.json) bytes"
+            head -c 300 /tmp/out.json; echo
+            sleep 5
+          done
