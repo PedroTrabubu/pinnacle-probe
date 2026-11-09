@@ -1,0 +1,17 @@
+name: probe-loop
+on: workflow_dispatch
+jobs:
+  loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Una captura cada 12 minutos durante una hora
+        run: |
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
+          for i in $(seq 1 6); do
+            echo "[$i] $(date -u +%H:%M:%S) UTC"
+            code=$(curl -s -o /tmp/out.json -w "%{http_code}" -A "$UA" -H "Accept: application/json" \
+              "https://guest.api.arcadia.pinnacle.com/0.1/leagues/2196/matchups")
+            echo "    HTTP $code, $(wc -c < /tmp/out.json) bytes"
+            if [ "$i" -lt 6 ]; then sleep 720; fi
+          done
