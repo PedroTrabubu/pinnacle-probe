@@ -1,0 +1,14 @@
+name: probe-schedule
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7,37 * * * *"
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Registrar hora y evento
+        run: |
+          echo "evento=${{ github.event_name }} hora_utc=$(date -u +%Y-%m-%dT%H:%M:%S)"
+          curl -s -o /dev/null -w "pinnacle HTTP %{http_code}\n" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36" "https://guest.api.arcadia.pinnacle.com/0.1/leagues/2196/matchups"
